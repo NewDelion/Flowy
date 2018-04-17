@@ -5,25 +5,62 @@ use pocketmine\event\Event;
 
 if(!class_exists('Flowy\ListenAwaitable')){
 
-class ListenAwaitable implements Awaitable{
-
+class ListenAwaitable{
 	/** @var string[] */
-	public $targets = [];
+	protected $targets = [];
 
 	/** @var callable[] */
-	public $filters = [];
+	protected $filters = [];
 
-	public function addListenTarget(string $event){
-		if(!is_subclass_of($event, Event::class))
-			throw new FlowyException("{$event}はEventではありません");
-		if(in_array($event, $this->targets))
-			throw new FlowyException("{$event}は既にlistenしています");
-		$this->target[] = $event;
-	}
+	/** @var (callable, bool)[] */
+	protected $branches = [];
+
+	/** @var callable */
+	protected $inactiveHandler = null;
 
 	public function filter(callable $filter){
 		$this->filters[] = $filter;
 		return $this;
+	}
+
+	public function branch(callable $flowDef, bool $continueWhenDone = false){
+		if(!(new \ReflectionFunction($flowDef))->isGenerator())
+			throw new FlowyException('');
+		$this->branches[] = [ $flowDef, $continueWhenDone ];
+		return $this;
+	}
+
+	public function inactive(callable $handler){
+		$this->inactiveHandler = $handler;
+	}
+
+	public function addListenTarget(string $event){
+		if(!is_subclass_of($event, Event::class))
+			throw new FlowyException("{$event}はEventではありません");
+		if(!in_array($event, $this->targets))
+			$this->target[] = $event;
+	}
+
+	public function getTargetEvents(){
+		return $this->targets;
+	}
+
+	public function getFilters(){
+		return $this->filters;
+	}
+
+	public function hasBranches(){
+		return count($this->branches) > 0;
+	}
+
+	public function getBranches(){
+		return $this->branches;
+	}
+
+	public function handleInactive(){
+		if($this->inactiveHandler !== null){
+			($this->inactiveHandler)();
+		}
 	}
 }
 

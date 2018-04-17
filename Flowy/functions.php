@@ -1,7 +1,7 @@
 <?php
 namespace Flowy;
 
-if(!function_exists('Flowy\listen') && !function_exists('Flowy\delay')){
+if(!function_exists('Flowy\listen')){
 
 function listen(string ...$events){
 	if(count($events) === 0)
@@ -9,12 +9,6 @@ function listen(string ...$events){
 	$awaitable = new ListenAwaitable();
 	foreach($events as $event)
 		$awaitable->addListenTarget($event);
-	return $awaitable;
-}
-
-function delay(int $delay){
-	$awaitable = new DelayAwaitable();
-	$awaitable->setDelay($delay);
 	return $awaitable;
 }
 
