@@ -7,6 +7,7 @@ use pocketmine\plugin\RegisteredListener;
 use pocketmine\plugin\MethodEventExecutor;
 use pocketmine\plugin\PluginException;
 use pocketmine\event\EventPriority;
+use pocketmine\event\Event;
 use pocketmine\event\HandlerList;
 
 if(!class_exists('Flowy\Flowy')){
