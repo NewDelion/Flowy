@@ -12,4 +12,12 @@ function listen(string ...$events){
 	return $awaitable;
 }
 
+function done(){
+	return new FlowDone();
+}
+
+function cancel(){
+	return new FlowCancel();
+}
+
 }// function_exists
