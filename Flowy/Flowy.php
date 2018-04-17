@@ -31,21 +31,27 @@ abstract class Flowy extends PluginBase implements Listener{
 			return false;
 		if($flow->current() === null || $flow->current() instanceof FlowDone || $flow->current() instanceof FlowCancel)
 			return false;
-		if(!($flow->current() instanceof ListenAwaitable))
+		if(!($flow->current() instanceof ListenAwaitable || $flow->current() instanceof DelayAwaitable))
 			return false;
 		return true;
 	}
 
 	public function start(\Generator $flow, ?int $flowIndex = null){
-		if(!($flow->current() instanceof ListenAwaitable))
+		if(!($flow->current() instanceof ListenAwaitable || $flow->current() instanceof DelayAwaitable))
 			throw new FlowyException('');
 		if(!$this->valid($flow))
 			throw new FlowyException('');
 		if(isset($flow->infoIndex))
 			throw new FlowyException('');
 
-		foreach($flow->current()->getTargetEvents() as $event){
-			$this->registerEvent($event);
+		if($flow->current() instanceof ListenAwaitable){
+			foreach($flow->current()->getTargetEvents() as $event){
+				$this->registerEvent($event);
+			}
+		}
+		else if($flow->current() instanceof DelayAwaitable){
+			$taskId = $this->getServer()->getScheduler()->scheduleDelayedTask(new FlowyDelayTask($this), $flow->current()->getDelay());
+			$flow->current()->setTaskId($taskId);
 		}
 		$flow->active = true;
 		$flow_index = $flowIndex ?? $this->flowMap->add($flow);
@@ -67,13 +73,19 @@ abstract class Flowy extends PluginBase implements Listener{
 	}
 
 	private function startBranch(\Generator $flow){
-		if(!($flow->current() instanceof ListenAwaitable))
+		if(!($flow->current() instanceof ListenAwaitable || $flow->current() instanceof DelayAwaitable))
 			throw new FlowyException('');
 		if(!$this->valid($flow))
 			throw new FlowyException('');
 
-		foreach($flow->current()->getTargetEvents() as $event){
-			$this->registerEvent($event);
+		if($flow->current() instanceof ListenAwaitable){
+			foreach($flow->current()->getTargetEvents() as $event){
+				$this->registerEvent($event);
+			}
+		}
+		else if($flow->current() instanceof DelayAwaitable){
+			$taskId = $this->getServer()->getScheduler()->scheduleDelayedTask(new FlowyDelayTask($this), $flow->current()->getDelay());
+			$flow->current()->setTaskId($taskId);
 		}
 		$flow->active = true;
 		$flow_index = $this->flowMap->add($flow);
@@ -125,7 +137,10 @@ abstract class Flowy extends PluginBase implements Listener{
 	public function handleEvent(Event $event){
 		$class = get_class($event);
 		foreach($this->flowMap as $flow_index => $flow){
-			if(!$flow->active || !in_array($class, $flow->current()->getTargetEvents()) || !$this->filterAll($flow->current()->getFilters()))
+			if(!$flow->active || 
+				!($flow->current() instanceof ListenAwaitable) || 
+				!in_array($class, $flow->current()->getTargetEvents()) || 
+				!$this->filterAll($flow->current()->getFilters(), $event))
 				continue;
 			if(isset(($root_flow = $this->flowMap[$this->getRootFlowIndex($flow_index)])->infoIndex)){
 				$this->inactiveAll($info = $this->branchInfoMap[$root_flow->infoIndex], [ $flow_index ]);
@@ -135,9 +150,28 @@ abstract class Flowy extends PluginBase implements Listener{
 					unset($flow->infoIndex);
 				}
 			}
-			foreach($flow->current()->getTargetEvents() as $class)
-					$this->unregisterEvent($class);
+			foreach($flow->current()->getTargetEvents() as $class){
+				$this->unregisterEvent($class);
+			}
 			$this->run($flow_index, $event);
+		}
+	}
+
+	public function handleDelay(int $taskId){
+		foreach($this->flowMap as $flow_index => $flow){
+			if(!$flow->active || 
+				!($flow->current() instanceof DelayAwaitable) || 
+				$flow->current()->getTaskId() !== $taskId)
+				continue;
+			if(isset(($root_flow = $this->flowMap[$this->getRootFlowIndex($flow_index)])->infoIndex)){
+				$this->inactiveAll($info = $this->branchInfoMap[$root_flow->infoIndex], [ $flow_index ]);
+				if($root_flow === $flow){# isset($flow->infoIndex)でもいいはずだよ
+					$this->removeBranches($info);
+					$this->branchInfoMap->remove($flow->infoIndex);
+					unset($flow->infoIndex);
+				}
+			}
+			$this->run($flow_index, null);
 		}
 	}
 
@@ -165,8 +199,14 @@ abstract class Flowy extends PluginBase implements Listener{
 			$main_flow = $this->flowMap[$info->getMainFlowIndex()];
 			if($main_flow->active){
 				$main_flow->active = false;
-				foreach($main_flow->current()->getTargetEvents() as $event)
-					$this->unregisterEvent($event);
+				if($main_flow->current() instanceof ListenAwaitable){
+					foreach($main_flow->current()->getTargetEvents() as $event){
+						$this->unregisterEvent($event);
+					}
+				}
+				else if($main_flow->current() instanceof DelayAwaitable){
+					$this->getServer()->getScheduler()->cancelTask($main_flow->current()->getTaskId());
+				}
 				$main_flow->current()->handleInactive();
 			}
 		}
@@ -176,8 +216,14 @@ abstract class Flowy extends PluginBase implements Listener{
 			$branch_flow = $this->flowMap[$branch_index];
 			if($branch_flow->active){
 				$branch_flow->active = false;
-				foreach($branch_flow->current()->getTargetEvents() as $event)
-					$this->unregisterEvent($event);
+				if($branch_flow->current() instanceof ListenAwaitable){
+					foreach($branch_flow->current()->getTargetEvents() as $event){
+						$this->unregisterEvent($event);
+					}
+				}
+				else if($branch_flow->current() instanceof DelayAwaitable){
+					$this->getServer()->getScheduler()->cancelTask($branch_flow->current()->getTaskId());
+				}
 				$branch_flow->current()->handleInactive();
 			}
 		}
@@ -190,8 +236,14 @@ abstract class Flowy extends PluginBase implements Listener{
 			$branch_flow = $this->flowMap[$branch_index];
 			if($branch_flow->active){//アクティブなはずないからthrowでもいいんだけどね
 				$branch_flow->active = false;
-				foreach($branch_flow->current()->getTargetEvents() as $event)
-					$this->unregisterEvent($event);
+				if($branch_flow->current() instanceof ListenAwaitable){
+					foreach($branch_flow->current()->getTargetEvents() as $event){
+						$this->unregisterEvent($event);
+					}
+				}
+				else if($branch_flow->current() instanceof DelayAwaitable){
+					$this->getServer()->getScheduler()->cancelTask($branch_flow->current()->getTaskId());
+				}
 				$branch_flow->current()->handleInactive();
 			}
 			$branch_flow = null;

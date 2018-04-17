@@ -12,6 +12,12 @@ function listen(string ...$events){
 	return $awaitable;
 }
 
+function delay(int $delay){
+	$awaitable = new DelayAwaitable();
+	$awaitable->setDelay($delay);
+	return $awaitable;
+}
+
 function done(){
 	return new FlowDone();
 }
