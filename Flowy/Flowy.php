@@ -20,6 +20,9 @@ abstract class Flowy extends PluginBase implements Listener{
 	/** @var FlowyObjectMap<BranchInfo> */
 	private $branchInfoMap = new FlowyObjectMap(BranchInfo::class);
 
+	/** @var (RegisteredListener, int)[string] */
+	private $registeredListeners = [];
+
 	private function valid(\Generator $flow){
 		if(!$flow->valid())
 			return false;
