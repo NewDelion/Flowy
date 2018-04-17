@@ -2,12 +2,14 @@
 namespace Flowy;
 
 use pocketmine\timings\TimingsHandler;
+use pocketmine\plugin\PluginBase;
 use pocketmine\plugin\PluginManager;
 use pocketmine\plugin\RegisteredListener;
 use pocketmine\plugin\MethodEventExecutor;
 use pocketmine\plugin\PluginException;
 use pocketmine\event\EventPriority;
 use pocketmine\event\Event;
+use pocketmine\event\Listener;
 use pocketmine\event\HandlerList;
 
 if(!class_exists('Flowy\Flowy')){
