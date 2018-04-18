@@ -131,7 +131,7 @@ abstract class Flowy extends PluginBase implements Listener{
 		return $list;
 	}
 
-	public function handleEvent(Event $event){
+	public function handleEvent($event){
 		$class = get_class($event);
 		foreach($this->flowMap as $flow_index => $flow){
 			if(!$flow->active || 
