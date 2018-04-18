@@ -26,6 +26,7 @@ class ListenAwaitable extends Awaitable{
 
 	public function addListenTarget(string $event){
 		if(!is_subclass_of($event, Event::class))
+			throw new FlowyException("{$event} is not an Event.");
 		if(!in_array($event, $this->targets))
 			$this->target[] = $event;
 	}
