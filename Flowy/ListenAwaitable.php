@@ -17,11 +17,11 @@ class ListenAwaitable extends Awaitable{
 		return $this;
 	}
 
-	public function timeout(callable $flow, int $tick){
+	public function timeout(callable $flow, int $tick, bool $continueWhenDone = false){
 		return $this->branch(function() use ($flow, $tick){
 			yield \Flowy\delay($tick);
 			yield from $flow();
-		});
+		}, $continueWhenDone);
 	}
 
 	public function addListenTarget(string $event){
