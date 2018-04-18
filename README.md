@@ -7,7 +7,6 @@ namespace FlowyExample;
 
 use Flowy\Flowy;
 use function Flowy\listen;
-use function Flowy\delay;
 
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerQuitEvent;
