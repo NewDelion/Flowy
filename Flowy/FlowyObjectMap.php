@@ -16,7 +16,7 @@ class FlowyObjectMap implements \ArrayAccess, \IteratorAggregate{
 
 	public function __construct(string $class){
 		if(!class_exists($class))
-			throw new FlowyException('');
+			throw new FlowyException("{$class} not defined.");
 		$this->class = $class;
 	}
 
@@ -30,14 +30,14 @@ class FlowyObjectMap implements \ArrayAccess, \IteratorAggregate{
 		return $this->container[$offset];
 	}
 
-	public function offsetSet($offset, $value) : void{
+	public function offsetSet($offset, $obj) : void{
 		if(!isset($this->container[$offset]))
-			throw new \OutOfBoundsException('');
-		if(!is_object($value))
-			throw new FlowyException('');
+			throw new \OutOfBoundsException("Undefined offset: {$offset}.");
+		if(!is_object($obj))
+			throw new FlowyException('value is non-object.');
 		if(get_class($obj) !== $this->class)
 			throw new FlowyException('');
-		$this->container[$offset] = $value;
+		$this->container[$offset] = $obj;
 	}
 
 	public function offsetUnset($offset) : void{
@@ -48,9 +48,9 @@ class FlowyObjectMap implements \ArrayAccess, \IteratorAggregate{
 
 	public function add($obj) : int{
 		if(!is_object($obj))
-			throw new FlowyException('');
+			throw new FlowyException('value is non-object.');
 		if(get_class($obj) !== $this->class)
-			throw new FlowyException('');
+			throw new FlowyException('This instance can not be stored.');
 		$index = $this->allocateIndex();
 		$this->container[$index] = $obj;
 		return $index;

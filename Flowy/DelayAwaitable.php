@@ -12,7 +12,7 @@ class DelayAwaitable extends Awaitable{
 
 	public function setDelay(int $delay){
 		if($delay <= 0)
-			throw new FlowyException("tick数は1以上の値を指定してください");
+			throw new FlowyException("Tick ​​number must be a value of 1 or more.");
 		$this->delay = $delay;
 	}
 
@@ -22,7 +22,7 @@ class DelayAwaitable extends Awaitable{
 
 	public function setTaskId(int $taskId){
 		if($taskId === -1)
-			throw new FlowyException("無効なTaskId({$taskId})");
+			throw new FlowyException("Invalid TaskId({$taskId})");
 		$this->taskId = $taskId;
 	}
 

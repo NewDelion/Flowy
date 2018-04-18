@@ -5,7 +5,7 @@ if(!function_exists('Flowy\listen')){
 
 function listen(string ...$events){
 	if(count($events) === 0)
-		throw new FlowyException("listenするイベントを1つ以上指定してください");
+		throw new FlowyException("Please specify at least one event to wait.");
 	$awaitable = new ListenAwaitable();
 	foreach($events as $event)
 		$awaitable->addListenTarget($event);

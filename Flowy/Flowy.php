@@ -37,12 +37,10 @@ abstract class Flowy extends PluginBase implements Listener{
 	}
 
 	public function start(\Generator $flow, ?int $flowIndex = null){
-		if(!($flow->current() instanceof ListenAwaitable || $flow->current() instanceof DelayAwaitable))
-			throw new FlowyException('');
 		if(!$this->valid($flow))
-			throw new FlowyException('');
-		if(isset($flow->infoIndex))
-			throw new FlowyException('');
+			throw new FlowyException('Flow has already finished.');
+		if(isset($flow->infoIndex) || (isset($flow->action) && $flow->action === true))
+			throw new FlowyException('Flow has already begun.');
 
 		if($flow->current() instanceof ListenAwaitable){
 			foreach($flow->current()->getTargetEvents() as $event){
@@ -73,10 +71,8 @@ abstract class Flowy extends PluginBase implements Listener{
 	}
 
 	private function startBranch(\Generator $flow){
-		if(!($flow->current() instanceof ListenAwaitable || $flow->current() instanceof DelayAwaitable))
-			throw new FlowyException('');
 		if(!$this->valid($flow))
-			throw new FlowyException('');
+			throw new FlowyException('Flow has already finished.');
 
 		if($flow->current() instanceof ListenAwaitable){
 			foreach($flow->current()->getTargetEvents() as $event){
@@ -126,10 +122,11 @@ abstract class Flowy extends PluginBase implements Listener{
 		}
 	}
 
+	# https://github.com/pmmp/PocketMine-MP/blob/5f52e0021359a466b6feae42a24ba5f30372124c/src/pocketmine/plugin/PluginManager.php#L802
 	private function getEventListeners(string $event){
 		$list = HandlerList::getHandlerListFor($event);
 		if($list === null){
-			throw new PluginException("待機することができないイベントが渡されました => {$event}");
+			throw new PluginException("Abstract events not declaring @allowHandle cannot be handled (tried to register listener for $event)");
 		}
 		return $list;
 	}
@@ -258,7 +255,7 @@ abstract class Flowy extends PluginBase implements Listener{
 			return;
 		}
 		$this->flowMap->remove($flowIndex);
-		if($result === null && $result instanceof FlowDone){
+		if($result === null || $result instanceof FlowDone){
 			if(isset($flow->continueWhenDone) && $flow->continueWhenDone){
 				$parentFlow = $this->flowMap[$flow->parentIndex];
 				if(isset($parentFlow->infoIndex)){
@@ -272,14 +269,14 @@ abstract class Flowy extends PluginBase implements Listener{
 		}
 		else if($result instanceof FlowCancel){
 			$root_index = $this->getRootFlowIndex($flowIndex);
+			if($root_index === $flowIndex)
+				throw new FlowyException('Main flow can not be canceled.');
 			$root_flow = $this->flowMap[$root_index];
-			if(!isset($root_flow->infoIndex))
-				throw new FlowyException('');
 			$this->removeBranches($this->branchInfoMap[$root_flow->infoIndex]);
 			$this->start($root_flow, $root_index);
 		}
 		else{
-			throw new FlowyException('');
+			throw new FlowyException('Unknown result.');
 		}
 	}
 }
