@@ -26,7 +26,7 @@ class HeySiri extends Flowy{
         $player = $event->getPlayer();
 
         $filter_player = function($ev) use ($player){ return $ev->getPlayer() === $player; };
-        $branch_quit = function(){ yield listen(PlayerQuitEvent::class); }
+        $branch_quit = function(){ yield listen(PlayerQuitEvent::class); };
 
         while(true){
             $event = yield listen(PlayerChatEvent::class)->filter($filter_player)
