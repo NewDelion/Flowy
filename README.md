@@ -16,36 +16,38 @@ use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\player\PlayerChatEvent;
 
 class HeySiri extends Flowy{
-　　function onEnable(){
-　　　　$this->start($this->heysiri());
-　　}
+    function onEnable(){
+        $this->start($this->heysiri());
+    }
 
-　　function heysiri(){
-　　　　$event = yield listen(PlayerJoinEvent::class);
-　　　　$this->start($this->heysiri());
-　　　　$player = $event->getPlayer();
+    function heysiri(){
+        $event = yield listen(PlayerJoinEvent::class);
+        $this->start($this->heysiri());
+        $player = $event->getPlayer();
 
-　　　　$filter_player = function($ev) use ($player){ return $ev->getPlayer() === $player; };
+        $filter_player = function($ev) use ($player){ return $ev->getPlayer() === $player; };
+        $branch_quit = function(){ yield listen(PlayerQuitEvent::class); }
 
-　　　　while(true){
-　　　　　　$event = yield listen(PlayerChatEvent::class)->filter($filter_player)
-　　　　　　　　->filter(function($ev){ return $ev->getMessage() === 'heysiri'; })
-　　　　　　　　->branch(function(){ yield listen(PlayerQuitEvent::class); });//exit
+        while(true){
+            $event = yield listen(PlayerChatEvent::class)->filter($filter_player)
+                ->filter(function($ev){ return $ev->getMessage() === 'heysiri'; })
+                ->branch($branch_quit);
 
-　　　　　　$player->sendMessage("What can I help you with?\nGo ahead. I'm listening...");
-　　　　　　$event->setCancelled();
+            $player->sendMessage("What can I help you with?\nGo ahead. I'm listening...");
+            $event->setCancelled();
 
-　　　　　　$event = yield listen(PlayerChatEvent::class)->filter($filter_player)
-　　　　　　　　->timeout(20 * 15, function() use ($player){
-　　　　　　　　　　　　$player->sendMessage("(♪popon)");
-　　　　　　　　}, true/*continue*/)
-　　　　　　　　->branch(function(){ yield listen(PlayerQuitEvent::class); });//exit
+            $event = yield listen(PlayerChatEvent::class)->filter($filter_player)
+                ->timeout(20 * 15)
+                ->branch($branch_quit);
 
-　　　　　　if($event !== null){
-　　　　　　　　$player->sendMessage("I'm not sure I understand.");
-　　　　　　　　$event->setCancelled();
-　　　　　　}
-　　　　}
-　　}
+            if($event === null){
+                $player->sendMessage("(♪popon)");
+            }
+            else{
+                $player->sendMessage("I'm not sure I understand.");
+                $event->setCancelled();
+            }
+        }
+    }
 }
 ```
