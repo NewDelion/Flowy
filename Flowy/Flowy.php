@@ -18,10 +18,10 @@ include_once(__DIR__.'/functions.php');
 
 abstract class Flowy extends PluginBase implements Listener{
 	/** @var FlowyObjectMap<\Generator> */
-	private $flowMap = new FlowyObjectMap(\Generator::class);
+	private $flowMap = null;
 
 	/** @var FlowyObjectMap<BranchInfo> */
-	private $branchInfoMap = new FlowyObjectMap(BranchInfo::class);
+	private $branchInfoMap = null;
 
 	/** @var (RegisteredListener, int)[string] */
 	private $registeredListeners = [];
@@ -52,11 +52,17 @@ abstract class Flowy extends PluginBase implements Listener{
 			$flow->current()->setTaskId($taskId);
 		}
 		$flow->active = true;
+		if($this->flowMap === null){
+			$this->flowMap = new FlowyObjectMap(\Generator::class);
+		}
 		$flow_index = $flowIndex ?? $this->flowMap->add($flow);
 		if(!$flow->current()->hasBranches())
 			return $flow_index;
 
 		$info = new BranchInfo();
+		if($this->branchInfoMap === null){
+			$this->branchInfoMap = new FlowyObjectMap(BranchInfo::class);
+		}
 		$flow->infoIndex = $this->branchInfoMap->add($info);
 		$info->setMainFlowIndex($flow_index);
 		foreach($flow->current()->getBranches() as list($branchDef, $continueWhenDone)){
