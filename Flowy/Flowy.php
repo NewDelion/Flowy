@@ -39,7 +39,7 @@ abstract class Flowy extends PluginBase implements Listener{
 	public function start(\Generator $flow, ?int $flowIndex = null){
 		if(!$this->valid($flow))
 			throw new FlowyException('Flow has already finished.');
-		if(isset($flow->infoIndex) || (isset($flow->action) && $flow->action === true))
+		if(isset($flow->infoIndex) || (isset($flow->active) && $flow->active === true))
 			throw new FlowyException('Flow has already begun.');
 
 		if($flow->current() instanceof ListenAwaitable){
