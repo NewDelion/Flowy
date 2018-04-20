@@ -17,10 +17,12 @@ class ListenAwaitable extends Awaitable{
 		return $this;
 	}
 
-	public function timeout(int $tick, callable $flow, bool $continueWhenDone = false){
+	public function timeout(int $tick, callable $flow = null, bool $continueWhenDone = true){
 		return $this->branch(function() use ($flow, $tick){
 			yield \Flowy\delay($tick);
-			yield from $flow();
+			if($flow !== null){
+				yield from $flow();
+			}
 		}, $continueWhenDone);
 	}
 
