@@ -256,7 +256,8 @@ abstract class Flowy extends PluginBase implements Listener{
 
 	private function run(int $flowIndex, ?Event $event){
 		$result = ($flow = $this->flowMap[$flowIndex])->send($event);
-		if($this->valid($result)){
+		if($this->valid($flow)){
+			$flow->active = false;
 			$this->start($flow, $flowIndex);
 			return;
 		}

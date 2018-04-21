@@ -30,7 +30,7 @@ class ListenAwaitable extends Awaitable{
 		if(!is_subclass_of($event, Event::class))
 			throw new FlowyException("{$event} is not an Event.");
 		if(!in_array($event, $this->targets))
-			$this->target[] = $event;
+			$this->targets[] = $event;
 	}
 
 	public function getTargetEvents(){
