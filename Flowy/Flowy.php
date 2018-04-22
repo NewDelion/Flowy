@@ -48,7 +48,7 @@ abstract class Flowy extends PluginBase implements Listener{
 			}
 		}
 		else if($flow->current() instanceof DelayAwaitable){
-			$taskId = $this->getServer()->getScheduler()->scheduleDelayedTask(new FlowyDelayTask($this), $flow->current()->getDelay());
+			$taskId = $this->getServer()->getScheduler()->scheduleDelayedTask(new FlowyDelayTask($this), $flow->current()->getDelay())->getTaskId();
 			$flow->current()->setTaskId($taskId);
 		}
 		$flow->active = true;
@@ -86,7 +86,7 @@ abstract class Flowy extends PluginBase implements Listener{
 			}
 		}
 		else if($flow->current() instanceof DelayAwaitable){
-			$taskId = $this->getServer()->getScheduler()->scheduleDelayedTask(new FlowyDelayTask($this), $flow->current()->getDelay());
+			$taskId = $this->getServer()->getScheduler()->scheduleDelayedTask(new FlowyDelayTask($this), $flow->current()->getDelay())->getTaskId();
 			$flow->current()->setTaskId($taskId);
 		}
 		$flow->active = true;
