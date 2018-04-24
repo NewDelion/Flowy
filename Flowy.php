@@ -65,8 +65,8 @@ abstract class Flowy extends PluginBase implements Listener{
 		}
 		$flow->infoIndex = $this->branchInfoMap->add($info);
 		$info->setMainFlowIndex($flow_index);
-		foreach($flow->current()->getBranches() as list($branchDef, $continueWhenDone)){
-			$branchFlow = $branchDef();
+		foreach($flow->current()->getBranches() as list($branchDef, $args_array, $continueWhenDone)){
+			$branchFlow = $branchDef(...$args_array);
 			$branchFlow->parentIndex = $flow_index;
 			$branchFlow->continueWhenDone = $continueWhenDone;
 			foreach($this->startBranch($branchFlow) as $branchIndex){
@@ -95,8 +95,8 @@ abstract class Flowy extends PluginBase implements Listener{
 		if(!$flow->current()->hasBranches())
 			return;
 
-		foreach($flow->current()->getBranches() as list($branchDef, $continueWhenDone)){
-			$branchFlow = $branchDef();
+		foreach($flow->current()->getBranches() as list($branchDef,$args_array, $continueWhenDone)){
+			$branchFlow = $branchDef(...$args_array);
 			$branchFlow->parentIndex = $flow_index;
 			$branchFlow->continueWhenDone = $continueWhenDone;
 			yield from $this->startBranch($branchFlow);

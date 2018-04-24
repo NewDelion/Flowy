@@ -10,10 +10,10 @@ abstract class Awaitable{
 	/** @var callable */
 	protected $inactiveHandler = null;
 
-	public function branch(callable $flowDef, bool $continueWhenDone = false){
+	public function branch(callable $flowDef, array $args_array = null, bool $continueWhenDone = false){
 		if(!(new \ReflectionFunction($flowDef))->isGenerator())
 			throw new FlowyException('$flowDef is not an anonymouse function that returns Generator.');
-		$this->branches[] = [ $flowDef, $continueWhenDone ];
+		$this->branches[] = [ $flowDef, $args_array, $continueWhenDone ];
 		return $this;
 	}
 

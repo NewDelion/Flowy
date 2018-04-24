@@ -33,13 +33,13 @@ class ListenAwaitable extends Awaitable{
 		return $this;
 	}
 
-	public function timeout(int $tick, callable $flow = null, bool $continueWhenDone = true){
-		return $this->branch(function() use ($flow, $tick){
+	public function timeout(int $tick, callable $flow = null, array $args_array, bool $continueWhenDone = true){
+		return $this->branch(function() use ($flow, $args_array, $tick){
 			yield \Flowy\delay($tick);
 			if($flow !== null){
-				yield from $flow();
+				yield from $flow($args_array);
 			}
-		}, $continueWhenDone);
+		}, null, $continueWhenDone);
 	}
 
 	public function addListenTarget(string $event){
