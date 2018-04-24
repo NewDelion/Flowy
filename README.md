@@ -1,6 +1,18 @@
 # Flowy
 __Awaitable for PocketMine-MP__
 
+## Install
+__Composer__
+```
+composer config repositories.NewDelion/Flowy vcs https://github.com/NewDelion/Flowy
+composer require NewDelion/Flowy:dev-master
+```
+__GitSubmodule__
+```
+git submodule add https://github.com/NewDelion/Flowy
+```
+
+## Example
 ```php
 <?php
 namespace FlowyExample;
