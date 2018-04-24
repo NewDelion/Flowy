@@ -12,6 +12,22 @@ class ListenAwaitable extends Awaitable{
 	/** @var callable[] */
 	protected $filters = [];
 
+	/** @var callable[string] */
+	protected static $extensions = [];
+
+	public static function registerExtensionMethod(string $name, \Closure $method){
+		if(isset(self::$extensions[$name]))
+			throw FlowyException('');
+		self::$extensions[$name] = $method;
+	}
+
+	public function __call($name, $args){
+		if(!isset(self::$extensions[$name]))
+			throw FlowyException('');
+		call_user_func_array(self::$extensions[$name]->bindTo($this), $args);
+		return $this;
+	}
+
 	public function filter(callable $filter){
 		$this->filters[] = $filter;
 		return $this;
