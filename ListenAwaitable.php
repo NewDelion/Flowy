@@ -33,11 +33,11 @@ class ListenAwaitable extends Awaitable{
 		return $this;
 	}
 
-	public function timeout(int $tick, callable $flow = null, array $args_array = null, bool $continueWhenDone = true){
-		return $this->branch(function() use ($flow, $args_array, $tick){
+	public function timeout(int $tick, callable $flowDef = null, array $args_array = null, bool $continueWhenDone = true){
+		return $this->branch(function() use ($flowDef, $args_array, $tick){
 			yield \Flowy\delay($tick);
-			if($flow !== null){
-				yield from $flow($args_array);
+			if($flowDef !== null && ($flow = $flowDef(...$args_array)) instanceof \Generator){
+				yield from $flow;
 			}
 		}, null, $continueWhenDone);
 	}
