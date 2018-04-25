@@ -18,6 +18,7 @@ git submodule add https://github.com/NewDelion/Flowy
 namespace FlowyExample;
 
 use Flowy\Flowy;
+use Flowy\ListenAwaitable;
 use function Flowy\listen;
 #use function Flowy\delay;
 #use function Flowy\done;
@@ -29,6 +30,18 @@ use pocketmine\event\player\PlayerChatEvent;
 
 class HeySiri extends Flowy{
     function onEnable(){
+        ListenAwaitable::registerMethod('filter_eq', 
+            function(string $methodName, $obj, bool $strict = true){
+                return $this->filter(function($ev) use ($methodName, $obj, $strict){
+                    if($strict){
+                        return $ev->{$methodName}() === $obj;
+                    }
+                    else{
+                        return $ev->{$methodName}() == $obj;
+                    }
+                });
+            }
+        );
         $this->start($this->heysiri());
     }
 
@@ -37,25 +50,23 @@ class HeySiri extends Flowy{
         $this->start($this->heysiri());
         $player = $event->getPlayer();
 
-        $filter_player = function($ev) use ($player){ return $ev->getPlayer() === $player; };
         $branch_quit = function(){ yield listen(PlayerQuitEvent::class); };
 
         while(true){
-            $event = yield listen(PlayerChatEvent::class)->filter($filter_player)
-                ->filter(function($ev){ return $ev->getMessage() === 'heysiri'; })
+            $event = yield listen(PlayerChatEvent::class)
+                ->filter('getPlayer', $player)
+                ->filter('getMessage', 'heysiri')
                 ->branch($branch_quit);
 
             $player->sendMessage("What can I help you with?\nGo ahead. I'm listening...");
             $event->setCancelled();
 
-            $event = yield listen(PlayerChatEvent::class)->filter($filter_player)
-                ->timeout(20 * 15)
+            $event = yield listen(PlayerChatEvent::class)
+                ->filter('getPlayer', $player)
+                ->timeout(20 * 15, [$player, 'sendMessage'], ["(♪popon)"], true)
                 ->branch($branch_quit);
 
-            if($event === null){
-                $player->sendMessage("(♪popon)");
-            }
-            else{
+            if($event !== null){
                 $player->sendMessage("I'm not sure I understand.");
                 $event->setCancelled();
             }
