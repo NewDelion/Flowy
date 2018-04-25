@@ -15,7 +15,7 @@ class ListenAwaitable extends Awaitable{
 	/** @var callable[string] */
 	protected static $extensions = [];
 
-	public static function registerExtensionMethod(string $name, \Closure $method){
+	public static function registerMethod(string $name, \Closure $method){
 		if(isset(self::$extensions[$name]))
 			throw FlowyException("{$name} is already registered.");
 		self::$extensions[$name] = $method;
