@@ -17,13 +17,13 @@ class ListenAwaitable extends Awaitable{
 
 	public static function registerExtensionMethod(string $name, \Closure $method){
 		if(isset(self::$extensions[$name]))
-			throw FlowyException('');
+			throw FlowyException("{$name} is already registered.");
 		self::$extensions[$name] = $method;
 	}
 
 	public function __call($name, $args){
 		if(!isset(self::$extensions[$name]))
-			throw FlowyException('');
+			throw FlowyException("Unknown method {$name}");
 		call_user_func_array(self::$extensions[$name]->bindTo($this), $args);
 		return $this;
 	}
