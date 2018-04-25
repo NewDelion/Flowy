@@ -54,15 +54,15 @@ class HeySiri extends Flowy{
 
         while(true){
             $event = yield listen(PlayerChatEvent::class)
-                ->filter('getPlayer', $player)
-                ->filter('getMessage', 'heysiri')
+                ->filter_eq('getPlayer', $player)
+                ->filter_eq('getMessage', 'heysiri')
                 ->branch($branch_quit);
 
             $player->sendMessage("What can I help you with?\nGo ahead. I'm listening...");
             $event->setCancelled();
 
             $event = yield listen(PlayerChatEvent::class)
-                ->filter('getPlayer', $player)
+                ->filter_eq('getPlayer', $player)
                 ->timeout(20 * 15, [$player, 'sendMessage'], ["(♪popon)"], true)
                 ->branch($branch_quit);
 
